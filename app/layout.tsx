@@ -3,8 +3,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "Example Pipe • Screenpipe",
-  description: "A clean starting point for your Screenpipe pipe",
+  title: "Screen Time Wrapped",
+  description: "Discover insights about your screen usage habits in a Spotify Wrapped-like presentation",
 };
 
 export default function RootLayout({

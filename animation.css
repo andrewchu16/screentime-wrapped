@@ -1,0 +1,145 @@
+body {
+    overflow: hidden;
+    background-color: #000;
+  }
+  
+  .bg {
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  .callout {
+    position: absolute;
+    font-size: 50px;
+    top: 52%;
+    left: 50%;
+    font-weight: 900;
+    color: white;
+    z-index: 999;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+  }
+  
+  .subtitle {
+    position: absolute;
+    font-size: 20px;
+    top: 52%;
+    left: 50%;
+    margin-top: 50px;
+    font-weight: 400;
+    color: white;
+    z-index: 999;
+    text-align: center;
+    transform: translate(-50%, -50%);
+  }
+  
+  .panel1 {
+    width: 100vw;
+    height: 100vh;
+    background: #ff95ec;
+    position: absolute;
+  }
+  .panel1:nth-of-type(1) {
+    z-index: 11;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 99%);
+  }
+  .panel1:nth-of-type(2) {
+    z-index: 10;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 98%);
+  }
+  .panel1:nth-of-type(3) {
+    z-index: 9;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 97%);
+  }
+  .panel1:nth-of-type(4) {
+    z-index: 8;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 96%);
+  }
+  .panel1:nth-of-type(5) {
+    z-index: 7;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 95%);
+  }
+  .panel1:nth-of-type(6) {
+    z-index: 6;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 94%);
+  }
+  .panel1:nth-of-type(7) {
+    z-index: 5;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 93%);
+  }
+  .panel1:nth-of-type(8) {
+    z-index: 4;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 92%);
+  }
+  .panel1:nth-of-type(9) {
+    z-index: 3;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 91%);
+  }
+  .panel1:nth-of-type(10) {
+    z-index: 2;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 90%);
+  }
+  .panel1:nth-of-type(11) {
+    z-index: 1;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 89%);
+  }
+  .panel1:nth-of-type(12) {
+    z-index: 0;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 88%);
+  }
+  
+  .panel2 {
+    width: 0;
+    height: 0;
+    background: #ff95ec;
+    position: absolute;
+  }
+  .panel2:nth-of-type(1) {
+    z-index: 11;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 99%);
+  }
+  .panel2:nth-of-type(2) {
+    z-index: 10;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 98%);
+  }
+  .panel2:nth-of-type(3) {
+    z-index: 9;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 97%);
+  }
+  .panel2:nth-of-type(4) {
+    z-index: 8;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 96%);
+  }
+  .panel2:nth-of-type(5) {
+    z-index: 7;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 95%);
+  }
+  .panel2:nth-of-type(6) {
+    z-index: 6;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 94%);
+  }
+  .panel2:nth-of-type(7) {
+    z-index: 5;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 93%);
+  }
+  .panel2:nth-of-type(8) {
+    z-index: 4;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 92%);
+  }
+  .panel2:nth-of-type(9) {
+    z-index: 3;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 91%);
+  }
+  .panel2:nth-of-type(10) {
+    z-index: 2;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 90%);
+  }
+  .panel2:nth-of-type(11) {
+    z-index: 1;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 89%);
+  }
+  .panel2:nth-of-type(12) {
+    z-index: 0;
+    background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 6%, #ff00d3 19%, red 72%, black 88%);
+  }

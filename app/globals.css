@@ -94,8 +94,6 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -103,4 +101,167 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Animated background panels */
+.animated-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.panel {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  top: -10%;
+  left: -10%;
+  border-radius: 30%;
+  transform-origin: center center;
+  animation: rotate 20s infinite linear;
+}
+
+.panel1 {
+  background: linear-gradient(105deg, #1db954 0%, #1ed760 30%, #2de26d 60%, #43e97b 90%);
+}
+
+.panel2 {
+  background: linear-gradient(105deg, #ff95ec 0%, #ff59e2 30%, #ff00d3 60%, #f06 90%);
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Bouncy animations for elements */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Animation utility classes */
+.bounce-in {
+  animation: bounceIn 0.8s ease forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.6s ease forwards;
+}
+
+.pulse {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Animated gradient text */
+.gradient-text {
+  background: linear-gradient(90deg, #1db954, #ff59e2, #ff00d3, #1db954);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient 4s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animated cards */
+.card-animated {
+  transition: all 0.3s ease;
+}
+
+.card-animated:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Progress bar animation */
+.progress-animated .progress-indicator {
+  transition: width 1s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Button animations */
+.button-bounce {
+  transition: transform 0.2s ease;
+}
+
+.button-bounce:hover {
+  transform: scale(1.05);
+}
+
+.button-bounce:active {
+  transform: scale(0.95);
 }
