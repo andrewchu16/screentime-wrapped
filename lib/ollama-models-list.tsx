@@ -38,7 +38,7 @@ export function OllamaModelsList({ defaultValue, onChange, disabled }: Props) {
   useEffect(() => {
     const fetchOllamaModels = async () => {
       try {
-        const response = await fetch("http://localhost:11434/api/tags");
+        const response = await fetch("http://localhost:3030/api/tags");
         if (!response.ok) throw new Error("failed to fetch ollama models");
         const data = (await response.json()) as { models: OllamaModel[] };
         setOllamaModels(data.models || []);

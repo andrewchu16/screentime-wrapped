@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -54,19 +54,7 @@ export default function WrappedPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    // Check if API key exists
-    const apiKey = localStorage.getItem("geminiApiKey");
-    if (!apiKey) {
-      router.push("/");
-      return;
-    }
-
-    // Check if Screenpipe is available
-    checkScreenpipeAvailability();
-  }, [router]);
-
-  const checkScreenpipeAvailability = async () => {
+  const checkScreenpipeAvailability = useCallback(async () => {
     setIsLoading(true);
     setLoadingProgress(10);
     
@@ -85,7 +73,7 @@ export default function WrappedPage() {
         setIsScreenpipeAvailable(false);
         toast({
           title: "Screenpipe Not Available",
-          description: "We'll use mock data for your presentation.",
+          description: "We&apos;ll use mock data for your presentation.",
           variant: "destructive",
         });
       } else {
@@ -99,14 +87,26 @@ export default function WrappedPage() {
       setIsScreenpipeAvailable(false);
       toast({
         title: "Screenpipe Not Available",
-        description: "We'll use mock data for your presentation.",
+        description: "We&apos;ll use mock data for your presentation.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
       setLoadingProgress(100);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    // Check if API key exists
+    const apiKey = localStorage.getItem("geminiApiKey");
+    if (!apiKey) {
+      router.push("/");
+      return;
+    }
+
+    // Check if Screenpipe is available
+    checkScreenpipeAvailability();
+  }, [checkScreenpipeAvailability, router]);
 
   const handleStartPresentation = async () => {
     setIsStarted(true);
@@ -125,6 +125,7 @@ export default function WrappedPage() {
         variant: "destructive",
       });
     } finally {
+      console.log("Setting isLoading to false");
       setIsLoading(false);
       setLoadingProgress(100);
     }
@@ -135,6 +136,7 @@ export default function WrappedPage() {
     
     // If Screenpipe is not available, return mock data
     if (!isScreenpipeAvailable) {
+      console.log("Screenpipe not available, returning mock data");
       setLoadingProgress(100);
       return MOCK_DATA;
     }
@@ -289,6 +291,7 @@ export default function WrappedPage() {
     
     // If we don't have enough real data, use mock data
     if (!textContent || textContent.length < 10) {
+      console.log("No text content found");
       return MOCK_DATA.textContent;
     }
     
@@ -360,7 +363,7 @@ export default function WrappedPage() {
                 <CardHeader>
                   <CardTitle className="text-xl text-center text-white">Ready to see your digital day?</CardTitle>
                   <CardDescription className="text-center text-white/70">
-                    We'll analyze your screen time and create a personalized presentation.
+                    We&apos;ll analyze your screen time and create a personalized presentation.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -381,7 +384,7 @@ export default function WrappedPage() {
                           <AlertCircle className="h-4 w-4" />
                           <AlertTitle>Screenpipe Not Available</AlertTitle>
                           <AlertDescription>
-                            We'll use mock data for your presentation.
+                            We&apos;ll use mock data for your presentation.
                           </AlertDescription>
                         </Alert>
                       )}
