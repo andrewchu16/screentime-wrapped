@@ -136,37 +136,109 @@ export default function WrappedPage() {
     
     // If Screenpipe is not available, return mock data
     if (!isScreenpipeAvailable) {
-      console.log("Screenpipe not available, returning mock data");
+      console.log("Screenpipe not available, using mock data");
       setLoadingProgress(100);
       return MOCK_DATA;
     }
 
     try {
+      // Add error handling for the analytics connection issue
+      const originalConsoleError = console.error;
+      console.error = function(msg, ...args) {
+        // Filter out the analytics connection errors
+        if (typeof msg === 'string' && 
+           (msg.includes('failed to fetch settings') || 
+            msg.includes('ERR_CONNECTION_REFUSED'))) {
+          // Suppress these specific errors
+          console.log("Suppressed error:", msg);
+          return;
+        }
+        originalConsoleError.apply(console, [msg, ...args]);
+      };
+
       // Fetch UI records from Screenpipe
-      const uiRecordsResponse = await pipe.queryScreenpipe({
-        contentType: "ui",
-        limit: 1000,
-      }) as ScreenpipeResponse | null;
+      console.log("Fetching UI records...");
+      let uiRecords = [];
+      try {
+        const startTimeUI = performance.now();
+        const uiRecordsResponse = await pipe.queryScreenpipe({
+          contentType: "ui",
+          limit: 1000,
+        }) as ScreenpipeResponse | null;
+        const requestTimeUI = performance.now() - startTimeUI;
+        console.log(`UI records fetched in ${requestTimeUI.toFixed(2)}ms`);
+        
+        uiRecords = uiRecordsResponse?.data || [];
+        console.log(`Retrieved ${uiRecords.length} UI records`);
+      } catch (uiError) {
+        console.error("Error fetching UI records:", uiError);
+        toast({
+          title: "Warning",
+          description: "Could not fetch UI records. Will try to use OCR records as fallback.",
+          variant: "destructive",
+        });
+      }
 
       setLoadingProgress(50);
 
       // Fetch OCR records from Screenpipe
-      const ocrRecordsResponse = await pipe.queryScreenpipe({
-        contentType: "ocr",
-        limit: 1000,
-      }) as ScreenpipeResponse | null;
+      console.log("Fetching OCR records...");
+      let ocrRecords = [];
+      try {
+        const startTimeOCR = performance.now();
+        const ocrRecordsResponse = await pipe.queryScreenpipe({
+          contentType: "ocr",
+          limit: 1000,
+        }) as ScreenpipeResponse | null;
+        const requestTimeOCR = performance.now() - startTimeOCR;
+        console.log(`OCR records fetched in ${requestTimeOCR.toFixed(2)}ms`);
+        
+        ocrRecords = ocrRecordsResponse?.data || [];
+        console.log(`Retrieved ${ocrRecords.length} OCR records`);
+      } catch (ocrError) {
+        console.error("Error fetching OCR records:", ocrError);
+        toast({
+          title: "Warning",
+          description: "Could not fetch OCR records. Some data may be missing.",
+          variant: "destructive",
+        });
+      }
+
+      // Restore original console.error
+      console.error = originalConsoleError;
 
       setLoadingProgress(70);
 
-      // Process the data
-      const uiRecords = uiRecordsResponse?.data || [];
-      const ocrRecords = ocrRecordsResponse?.data || [];
+      // If both record types are empty, fall back to mock data
+      if (uiRecords.length === 0 && ocrRecords.length === 0) {
+        console.log("No records found, using mock data");
+        toast({
+          title: "No Data Found",
+          description: "Using sample data for your presentation.",
+          variant: "destructive",
+        });
+        return MOCK_DATA;
+      }
 
-      // Process app usage data
-      const appUsage = processAppUsage(uiRecords);
+      let appUsage;
+      let websiteUsage;
       
-      // Process website usage data
-      const websiteUsage = processWebsiteUsage(uiRecords);
+      // Process app and website usage data
+      if (uiRecords.length > 0) {
+        // If UI records are available, use them
+        console.log("Using UI records for app and website usage");
+        appUsage = processAppUsage(uiRecords);
+        websiteUsage = processWebsiteUsage(uiRecords);
+      } else if (ocrRecords.length > 0) {
+        // If UI records are not available but OCR records are, use OCR records as fallback
+        console.log("Using OCR records as fallback for app and website usage");
+        appUsage = processAppUsageFromOCR(ocrRecords);
+        websiteUsage = processWebsiteUsageFromOCR(ocrRecords);
+      } else {
+        // If neither is available, use mock data
+        appUsage = MOCK_DATA.appUsage;
+        websiteUsage = MOCK_DATA.websiteUsage;
+      }
       
       // Extract text content from OCR records
       const textContent = extractTextContent(ocrRecords);
@@ -184,6 +256,11 @@ export default function WrappedPage() {
     } catch (error) {
       console.error("Error fetching screen time data:", error);
       // Return mock data if there's an error
+      toast({
+        title: "Error",
+        description: "Failed to fetch screen time data. Using mock data instead.",
+        variant: "destructive",
+      });
       return MOCK_DATA;
     }
   };
@@ -282,13 +359,14 @@ export default function WrappedPage() {
     return null;
   };
 
-  const extractTextContent = (ocrRecords: any[] = []) => {
+  // Function to extract text content from OCR records
+  const extractTextContent = function(ocrRecords: any[] = []): string {
     // Extract text from OCR records
     const textContent = ocrRecords
-      .map(record => record.text)
+      .map(record => record.content?.text || '')
       .filter(Boolean)
       .join(' ');
-    
+
     // If we don't have enough real data, use mock data
     if (!textContent || textContent.length < 10) {
       console.log("No text content found");
@@ -296,6 +374,112 @@ export default function WrappedPage() {
     }
     
     return textContent;
+  };
+
+  // Process app usage from OCR records
+  const processAppUsageFromOCR = (ocrRecords: any[] = []): Array<{name: string; timeSpent: number; sessions: number}> => {
+    // Group records by app name
+    const appUsageMap = new Map();
+    
+    ocrRecords.forEach(record => {
+      if (record.content && record.content.appName) {
+        const appName = record.content.appName;
+        
+        if (!appUsageMap.has(appName)) {
+          appUsageMap.set(appName, {
+            name: appName,
+            timeSpent: 0,
+            sessions: 0
+          });
+        }
+        
+        const app = appUsageMap.get(appName);
+        app.timeSpent += 5; // Each OCR record might represent ~5 seconds
+        app.sessions += 1;
+      }
+    });
+    
+    // Convert map to array and sort by time spent
+    const appUsage = Array.from(appUsageMap.values())
+      .sort((a, b) => b.timeSpent - a.timeSpent)
+      .slice(0, 10); // Get top 10 apps
+    
+    // If we don't have enough real data, use mock data
+    if (appUsage.length === 0) {
+      return MOCK_DATA.appUsage;
+    }
+    
+    return appUsage;
+  };
+
+  // Process website usage from OCR records
+  const processWebsiteUsageFromOCR = (ocrRecords: any[] = []): Array<{name: string; timeSpent: number; visits: number}> => {
+    // Group records by website
+    const websiteUsageMap = new Map();
+    
+    ocrRecords.forEach(record => {
+      if (record.content && record.content.windowName) {
+        const windowName = record.content.windowName;
+        const websiteName = extractWebsiteName(windowName);
+        
+        if (websiteName && !websiteUsageMap.has(websiteName)) {
+          websiteUsageMap.set(websiteName, {
+            name: websiteName,
+            timeSpent: 0,
+            visits: 0
+          });
+        }
+        
+        if (websiteName) {
+          const website = websiteUsageMap.get(websiteName);
+          website.timeSpent += 5; // Each OCR record might represent ~5 seconds
+          website.visits += 1;
+        }
+      }
+    });
+    
+    // Try to extract websites from OCR text content if we don't have enough data
+    if (websiteUsageMap.size < 3) {
+      ocrRecords.forEach(record => {
+        if (record.content && record.content.text) {
+          // Look for URLs in the OCR text
+          const urlMatches = record.content.text.match(/https?:\/\/([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g);
+          if (urlMatches) {
+            urlMatches.forEach((url: string) => {
+              try {
+                const hostname = new URL(url).hostname;
+                
+                if (!websiteUsageMap.has(hostname)) {
+                  websiteUsageMap.set(hostname, {
+                    name: hostname,
+                    timeSpent: 0,
+                    visits: 0
+                  });
+                }
+                
+                const website = websiteUsageMap.get(hostname);
+                website.timeSpent += 5;
+                website.visits += 1;
+              } catch (e) {
+                // Invalid URL, skip
+              }
+            });
+          }
+        }
+      });
+    }
+    
+    // Convert map to array and sort by time spent
+    const websiteUsage = Array.from(websiteUsageMap.values())
+      .sort((a, b) => b.timeSpent - a.timeSpent)
+      .slice(0, 10); // Get top 10 websites
+    
+    // If we don't have enough real data, use mock data
+    if (websiteUsage.length === 0) {
+      return MOCK_DATA.websiteUsage;
+    }
+    
+    return websiteUsage;
   };
 
   if (isLoading) {

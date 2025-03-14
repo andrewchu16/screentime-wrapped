@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft, Home } from "lucide-react";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 interface ScreenTimePresentationProps {
   data: {
@@ -95,7 +96,7 @@ export default function ScreenTimePresentation({ data }: ScreenTimePresentationP
       
       // Create prompt for Gemini
       const prompt = `
-        You are creating a "Spotify Wrapped"-style presentation about someone's screen time usage.
+        You are creating a "Spotify Wrapped"-style presentation about someone's screen time usage for ${new Date().toLocaleDateString()}.
         
         Here's data about their screen usage in the last 24 hours:
         
@@ -137,87 +138,125 @@ export default function ScreenTimePresentation({ data }: ScreenTimePresentationP
       // Update progress
       setGenerationProgress(20);
       
+      // Initialize the Google Generative AI client
+      const genAI = new GoogleGenerativeAI(apiKey);
+      
       // Define models to try in order of preference
       const modelsToTry = [
-        {
-          url: "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent",
-          name: "gemini-1.5-pro"
-        },
-        {
-          url: "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent",
-          name: "gemini-pro"
-        },
-        {
-          url: "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
-          name: "gemini-pro (beta)"
-        }
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-pro"
       ];
       
-      let response = null;
+      let responseText = null;
       let lastError = null;
       
       // Try each model in sequence until one works
-      for (const model of modelsToTry) {
+      for (const modelName of modelsToTry) {
         try {
-          console.log(`Trying Gemini model: ${model.name}`);
+          console.log(`Trying Gemini model: ${modelName}`);
           
-          // Call Gemini API
-          response = await fetch(model.url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": apiKey
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    {
-                      text: prompt
-                    }
-                  ]
-                }
-              ],
-              generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 2048
-              }
-            })
+          // Get the generative model
+          const model = genAI.getGenerativeModel({ 
+            model: modelName,
+            generationConfig: {
+              temperature: 0.7,
+              topP: 0.95,
+              topK: 40,
+              maxOutputTokens: 2048,
+            }
           });
           
-          if (response.ok) {
-            console.log(`Successfully used model: ${model.name}`);
+          // Generate content
+          const result = await model.generateContent(prompt);
+          const response = result.response;
+          
+          if (response) {
+            responseText = response.text();
+            console.log(`Successfully used model: ${modelName}`);
             break; // Exit the loop if successful
-          } else {
-            const errorData = await response.json();
-            lastError = `${model.name}: ${errorData.error?.message || response.statusText}`;
-            console.warn(`Failed with model ${model.name}:`, lastError);
           }
         } catch (err) {
-          lastError = `${model.name}: ${err instanceof Error ? err.message : String(err)}`;
-          console.warn(`Error with model ${model.name}:`, lastError);
+          lastError = `${modelName}: ${err instanceof Error ? err.message : String(err)}`;
+          console.warn(`Error with model ${modelName}:`, lastError);
         }
       }
       
       // Update progress
       setGenerationProgress(60);
       
-      if (!response || !response.ok) {
-        throw new Error(`All Gemini API models failed. Last error: ${lastError}`);
-      }
+      // Create predefined slides as a fallback
+      const predefinedSlides: Slide[] = [
+        {
+          title: "Welcome to Your Screen Time Wrapped",
+          content: "Let's take a journey through your digital day and discover how you spent your time online. We've analyzed your screen activity to create this personalized presentation just for you! 🚀",
+          type: "text"
+        },
+        {
+          title: "Your Top Apps",
+          content: "These are the applications where you spent most of your digital time. Your app usage reveals your digital priorities and workflow patterns.",
+          type: "appUsage",
+          data: data.appUsage
+        },
+        {
+          title: "Your Web Wanderings",
+          content: "Here's where you've been exploring online. Your browsing habits show your interests and digital destinations.",
+          type: "websiteUsage",
+          data: data.websiteUsage
+        },
+        {
+          title: "Digital Deep Dive",
+          content: "Looking at your overall screen time, we noticed you tend to switch between apps frequently. This multitasking approach is characteristic of someone who juggles multiple projects simultaneously! 🧠",
+          type: "text"
+        },
+        {
+          title: "Your Digital Personality",
+          content: "Based on your app and website usage, you're what we call a 'Digital Explorer' - someone who uses technology as a tool for learning and discovery. You value efficiency but also make time for exploration and creativity. ✨",
+          type: "text"
+        },
+        {
+          title: "Future Forecast",
+          content: "If you continue with these digital habits, you might benefit from time-blocking techniques to group similar tasks. Consider trying focus apps to maximize your productivity during peak usage hours! 📈",
+          type: "text"
+        },
+        {
+          title: "Thanks for Watching!",
+          content: "We hope you enjoyed this glimpse into your digital life! Remember, technology is a tool - make it work for you in ways that enhance your life and well-being. Come back soon for more insights! 👋",
+          type: "text"
+        }
+      ];
       
-      const responseData = await response.json();
+      if (!responseText) {
+        console.log("All Gemini API models failed, using predefined slides");
+        toast({
+          title: "Using Predefined Content",
+          description: "We couldn't generate personalized content, so we're using predefined slides instead.",
+          variant: "destructive",
+        });
+        
+        // Use predefined slides instead of throwing an error
+        const finalSlides: Slide[] = predefinedSlides.map((slide, index) => {
+          if (index === 1) {
+            return { ...slide, type: "appUsage" as const, data: data.appUsage };
+          } else if (index === 2) {
+            return { ...slide, type: "websiteUsage" as const, data: data.websiteUsage };
+          }
+          return slide;
+        });
+        
+        // Update progress
+        setGenerationProgress(100);
+        
+        // Set the slides
+        setSlides(finalSlides);
+        setLoading(false);
+        return;
+      }
       
       // Update progress
       setGenerationProgress(80);
-      
-      // Parse the response
-      const responseText = responseData.candidates[0]?.content?.parts[0]?.text;
-      if (!responseText) {
-        throw new Error("No response from Gemini API");
-      }
       
       // Extract JSON from response
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
