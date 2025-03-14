@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { Inter } from "next/font/google";
+
+// Load Inter font
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Screen Time Wrapped",
@@ -13,9 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body 
-        className="antialiased min-h-screen bg-background" 
+        className="antialiased min-h-screen bg-background font-sans" 
         suppressHydrationWarning
         data-suppress-hydration-warning={true}
       >
