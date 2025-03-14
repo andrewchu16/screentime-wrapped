@@ -91,6 +91,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Improve font rendering for all text elements */
+  h1, h2, h3, h4, h5, h6, p, span, a, button, input, textarea, select {
+    @apply font-sans;
   }
 }
 
